@@ -65,7 +65,7 @@ static DEFINE_MUTEX(ksu_policy_hide_mutex);
 
 static ksu_security_read_policy_fn ksu_read_policy_fn;
 static ksu_sel_read_policy_fn ksu_orig_sel_read_policy;
-static ssize_t *ksu_sel_read_policy_slot;
+static ksu_sel_read_policy_fn *ksu_sel_read_policy_slot;
 
 /*
  * Walk the NUL terminated strings of the blob and rename whole matches. Only
