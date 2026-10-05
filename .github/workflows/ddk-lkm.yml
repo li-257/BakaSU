@@ -52,6 +52,36 @@ jobs:
         EXPECTED_PR_BUILD_HASH: ${{ inputs.expected_pr_build_hash }}
       run: |
         cd kernel
+        # ================= vivo 定制补丁（本 fork 独有）=================
+        # 1) 注入 vivo vermagic：vivo 官方内核要求 vermagic 里含 "vivo" token
+        KMI="${{ inputs.kmi }}"
+        ANDROID_VER=$(echo "$KMI" | cut -d- -f1 | sed 's/android//')
+        KERNEL_VER=$(echo "$KMI" | cut -d- -f2)
+        case "$KMI" in
+          android12-5.10) UTS_STRING="5.10.233-android12-9-g28b19682acbc-dirty" ;;
+          android14-6.1)  UTS_STRING="6.1.145-android14-11-maybe-dirty" ;;
+          *)              UTS_STRING="${KERNEL_VER}.0-android${ANDROID_VER}-0-maybe-dirty"
+                          echo "WARNING: KMI=$KMI 使用通用 vivo vermagic 模板" ;;
+        esac
+        VMAGIC_STRING="${UTS_STRING} SMP preempt mod_unload modversions vivo aarch64"
+        VERMAGIC_FILE=$(find /opt/ddk -path "*/include/linux/vermagic.h" | head -n 1)
+        if [ -z "$VERMAGIC_FILE" ]; then echo "ERROR: vermagic.h 未找到"; exit 1; fi
+        echo "Patching $VERMAGIC_FILE  (KMI=$KMI)"
+        echo "  VERMAGIC = $VMAGIC_STRING"
+        {
+          echo ""
+          echo "#undef VERMAGIC_STRING"
+          echo "#define VERMAGIC_STRING \"$VMAGIC_STRING\""
+        } >> "$VERMAGIC_FILE"
+        # 2) 模块改名 vivo_pm_mgr（消除 /proc/modules 里的 kernelsu 特征）
+        sed -i 's/obj-\$(CONFIG_KSU) += kernelsu\.o/obj-$(CONFIG_KSU) += vivo_pm_mgr.o/' Kbuild
+        sed -i 's/kernelsu-objs/vivo_pm_mgr-objs/g' Kbuild
+        sed -i 's/check_symbol kernelsu\.ko/check_symbol vivo_pm_mgr.ko/' Makefile
+        echo "--- verify rename (fail fast if any is 0) ---"
+        grep -c "vivo_pm_mgr-objs" Kbuild
+        grep -n "obj-\$(CONFIG_KSU) += vivo_pm_mgr.o" Kbuild
+        grep -n "check_symbol" Makefile
+        # ================= vivo 定制补丁结束 =================
 
         echo "=== Building kernelsu.ko for KMI: ${{ inputs.kmi }} ==="
 
@@ -77,7 +107,7 @@ jobs:
 
         # Copy with KMI-specific naming
         OUTPUT_NAME="${{ inputs.kmi }}_kernelsu.ko"
-        cp kernelsu.ko "$OUT_DIR/$OUTPUT_NAME"
+        cp vivo_pm_mgr.ko "$OUT_DIR/$OUTPUT_NAME"
         
         echo "Copied to: $OUT_DIR/$OUTPUT_NAME"
         ls -la "$OUT_DIR/$OUTPUT_NAME"
@@ -99,6 +129,36 @@ jobs:
         EXPECTED_PR_BUILD_HASH: ${{ inputs.expected_pr_build_hash }}
       run: |
         cd kernel
+        # ================= vivo 定制补丁（本 fork 独有）=================
+        # 1) 注入 vivo vermagic：vivo 官方内核要求 vermagic 里含 "vivo" token
+        KMI="${{ inputs.kmi }}"
+        ANDROID_VER=$(echo "$KMI" | cut -d- -f1 | sed 's/android//')
+        KERNEL_VER=$(echo "$KMI" | cut -d- -f2)
+        case "$KMI" in
+          android12-5.10) UTS_STRING="5.10.233-android12-9-g28b19682acbc-dirty" ;;
+          android14-6.1)  UTS_STRING="6.1.145-android14-11-maybe-dirty" ;;
+          *)              UTS_STRING="${KERNEL_VER}.0-android${ANDROID_VER}-0-maybe-dirty"
+                          echo "WARNING: KMI=$KMI 使用通用 vivo vermagic 模板" ;;
+        esac
+        VMAGIC_STRING="${UTS_STRING} SMP preempt mod_unload modversions vivo aarch64"
+        VERMAGIC_FILE=$(find /opt/ddk -path "*/include/linux/vermagic.h" | head -n 1)
+        if [ -z "$VERMAGIC_FILE" ]; then echo "ERROR: vermagic.h 未找到"; exit 1; fi
+        echo "Patching $VERMAGIC_FILE  (KMI=$KMI)"
+        echo "  VERMAGIC = $VMAGIC_STRING"
+        {
+          echo ""
+          echo "#undef VERMAGIC_STRING"
+          echo "#define VERMAGIC_STRING \"$VMAGIC_STRING\""
+        } >> "$VERMAGIC_FILE"
+        # 2) 模块改名 vivo_pm_mgr（消除 /proc/modules 里的 kernelsu 特征）
+        sed -i 's/obj-\$(CONFIG_KSU) += kernelsu\.o/obj-$(CONFIG_KSU) += vivo_pm_mgr.o/' Kbuild
+        sed -i 's/kernelsu-objs/vivo_pm_mgr-objs/g' Kbuild
+        sed -i 's/check_symbol kernelsu\.ko/check_symbol vivo_pm_mgr.ko/' Makefile
+        echo "--- verify rename (fail fast if any is 0) ---"
+        grep -c "vivo_pm_mgr-objs" Kbuild
+        grep -n "obj-\$(CONFIG_KSU) += vivo_pm_mgr.o" Kbuild
+        grep -n "check_symbol" Makefile
+        # ================= vivo 定制补丁结束 =================
 
         echo "=== Preparing KDIR for x64 ==="
 
@@ -160,7 +220,7 @@ jobs:
 
         # Copy with KMI-specific naming
         OUTPUT_NAME="${{ inputs.kmi }}_kernelsu.ko"
-        cp kernelsu.ko "$OUT_DIR/$OUTPUT_NAME"
+        cp vivo_pm_mgr.ko "$OUT_DIR/$OUTPUT_NAME"
         
         echo "Copied to: $OUT_DIR/$OUTPUT_NAME"
         ls -la "$OUT_DIR/$OUTPUT_NAME"
