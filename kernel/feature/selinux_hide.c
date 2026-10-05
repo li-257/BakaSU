@@ -476,6 +476,7 @@ static int ksu_selinux_hide_enable()
 #ifndef KSU_COMPAT_HAS_SUSFS_FEATURE_SELINUX_HIDE
     hook_selinux_status_open();
 #endif
+    ksu_selinux_policy_hide_enable();
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
 
@@ -649,6 +650,7 @@ static void ksu_selinux_hide_disable()
 #endif
 
     ksu_selinux_hide_unhook();
+    ksu_selinux_policy_hide_disable();
 }
 
 static int selinux_hide_feature_get(u64 *value)
