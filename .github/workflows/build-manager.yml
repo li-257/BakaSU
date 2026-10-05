@@ -115,8 +115,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - manager_type: "spoofed"
-            build_type: "release"
 
           - manager_type: "normal"
             build_type: "release"
@@ -231,8 +229,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - manager_type: "spoofed"
-            build_type: "release"
           - manager_type: "normal"
             build_type: "release"
           - manager_type: "normal"
@@ -404,7 +400,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        manager_type: [ "spoofed", "normal" ]
+        manager_type: [ "normal" ]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
