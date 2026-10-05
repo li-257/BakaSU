@@ -76,11 +76,15 @@ jobs:
         # 2) 模块改名 vivo_pm_mgr（消除 /proc/modules 里的 kernelsu 特征）
         sed -i 's/obj-\$(CONFIG_KSU) += kernelsu\.o/obj-$(CONFIG_KSU) += vivo_pm_mgr.o/' Kbuild
         sed -i 's/kernelsu-objs/vivo_pm_mgr-objs/g' Kbuild
+        # Makefile 里是 "./check_symbol $(ODIR)/kernelsu.ko $(KDIR)/vmlinux" —— 用宽松匹配
+        sed -i 's|/kernelsu\.ko|/vivo_pm_mgr.ko|g' Makefile
         sed -i 's/check_symbol kernelsu\.ko/check_symbol vivo_pm_mgr.ko/' Makefile
-        echo "--- verify rename (fail fast if any is 0) ---"
-        grep -c "vivo_pm_mgr-objs" Kbuild
-        grep -n "obj-\$(CONFIG_KSU) += vivo_pm_mgr.o" Kbuild
-        grep -n "check_symbol" Makefile
+        echo "--- verify rename (任一为 0 立即失败，避免今天那种盲猜) ---"
+        echo -n "Kbuild  vivo_pm_mgr-objs 计数: "; grep -c "vivo_pm_mgr-objs" Kbuild
+        echo -n "Kbuild  obj-m 新名:          "; grep -c "obj-\$(CONFIG_KSU) += vivo_pm_mgr.o" Kbuild
+        echo -n "Makefile 新 .ko 名:          "; grep -c "vivo_pm_mgr.ko" Makefile
+        echo -n "Kbuild  残留 kernelsu-objs:  "; grep -c "kernelsu-objs" Kbuild || echo "0 (good)"
+        echo -n "Makefile 残留 kernelsu.ko:   "; grep -c "kernelsu\.ko" Makefile || echo "0 (good)"
         # ================= vivo 定制补丁结束 =================
 
         echo "=== Building kernelsu.ko for KMI: ${{ inputs.kmi }} ==="
@@ -153,11 +157,15 @@ jobs:
         # 2) 模块改名 vivo_pm_mgr（消除 /proc/modules 里的 kernelsu 特征）
         sed -i 's/obj-\$(CONFIG_KSU) += kernelsu\.o/obj-$(CONFIG_KSU) += vivo_pm_mgr.o/' Kbuild
         sed -i 's/kernelsu-objs/vivo_pm_mgr-objs/g' Kbuild
+        # Makefile 里是 "./check_symbol $(ODIR)/kernelsu.ko $(KDIR)/vmlinux" —— 用宽松匹配
+        sed -i 's|/kernelsu\.ko|/vivo_pm_mgr.ko|g' Makefile
         sed -i 's/check_symbol kernelsu\.ko/check_symbol vivo_pm_mgr.ko/' Makefile
-        echo "--- verify rename (fail fast if any is 0) ---"
-        grep -c "vivo_pm_mgr-objs" Kbuild
-        grep -n "obj-\$(CONFIG_KSU) += vivo_pm_mgr.o" Kbuild
-        grep -n "check_symbol" Makefile
+        echo "--- verify rename (任一为 0 立即失败，避免今天那种盲猜) ---"
+        echo -n "Kbuild  vivo_pm_mgr-objs 计数: "; grep -c "vivo_pm_mgr-objs" Kbuild
+        echo -n "Kbuild  obj-m 新名:          "; grep -c "obj-\$(CONFIG_KSU) += vivo_pm_mgr.o" Kbuild
+        echo -n "Makefile 新 .ko 名:          "; grep -c "vivo_pm_mgr.ko" Makefile
+        echo -n "Kbuild  残留 kernelsu-objs:  "; grep -c "kernelsu-objs" Kbuild || echo "0 (good)"
+        echo -n "Makefile 残留 kernelsu.ko:   "; grep -c "kernelsu\.ko" Makefile || echo "0 (good)"
         # ================= vivo 定制补丁结束 =================
 
         echo "=== Preparing KDIR for x64 ==="
